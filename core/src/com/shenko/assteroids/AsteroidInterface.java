@@ -8,6 +8,7 @@ public interface AsteroidInterface {
 	
 	public void Render(ShapeRenderer Renderer);
 	
+	public void TakeHit();
 	
 	
 }

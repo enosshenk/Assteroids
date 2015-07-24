@@ -1,15 +1,14 @@
 package com.shenko.assteroids;
 
-
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 
-public class AsteroidLarge extends Asteroid implements AsteroidInterface {
-	
-	public AsteroidLarge(AssteroidsGameScreen inScreen, ESize inSize, Vector2 inLocation, Vector2 inVelocity)
+public class AsteroidMedium extends Asteroid implements AsteroidInterface {
+
+	public AsteroidMedium(AssteroidsGameScreen inScreen, ESize inSize, Vector2 inLocation, Vector2 inVelocity)
 	{
 		
 		TheScreen = inScreen;
@@ -24,7 +23,7 @@ public class AsteroidLarge extends Asteroid implements AsteroidInterface {
 		case LARGE:
 			DrawPolygon = new Polygon(DrawPointsLarge);
 			DrawPolygon.scale(10);
-			Collision = new Circle(Location, 45);
+			Collision = new Circle(Location, 40);
 			break;
 			
 		case MEDIUM:
@@ -82,5 +81,5 @@ public class AsteroidLarge extends Asteroid implements AsteroidInterface {
 	public void TakeHit() {
 		super.TakeHit();			
 	}
-	
+
 }
