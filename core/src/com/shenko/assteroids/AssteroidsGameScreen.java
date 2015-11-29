@@ -35,9 +35,13 @@ public class AssteroidsGameScreen implements Screen {
 	public int Score;
 	public int Lives;
 	public ScoreRenderer ScoreRenderer;
+	public TextRenderer TextRenderer;
 	
 	public List<Particle> Particles;		// List of currently rendered particles
 	public List<ShipGib> Gibs;				// List of currently rendered ship giblets
+	
+	public float LevelResetTimeElapsed;
+	public int Level;
 	
 	public enum EGameMode { STARTUP, RUNNING, LEVELDONE, PLAYERDEAD, GAMEOVER }
 	public EGameMode Mode = EGameMode.STARTUP;
@@ -65,6 +69,7 @@ public class AssteroidsGameScreen implements Screen {
 		Score = 0;
 		Lives = 3;
 		ScoreRenderer = new ScoreRenderer(this);
+		TextRenderer = new TextRenderer();
 		
 		// Call function that generates asteroids
 		NewLevel();
@@ -113,6 +118,11 @@ public class AssteroidsGameScreen implements Screen {
 		
 		if (Ship != null) { Ship.Render(Shape); }
 		
+		if (Mode == EGameMode.RUNNING && Asteroids.isEmpty())
+		{
+			LevelClear();
+		}
+		
 		// Render game objects
 		for (Asteroid a : Asteroids)
 		{
@@ -127,8 +137,23 @@ public class AssteroidsGameScreen implements Screen {
 			g.Render(Shape);
 		}
 		
+		// Do level transition
+		if (Mode == EGameMode.LEVELDONE)
+		{
+			LevelResetTimeElapsed += delta;
+			
+			String Text = "LEVEL " + String.valueOf(Level) + " CLEARED";
+			
+			TextRenderer.DrawTextCentered(Shape, Text, new Vector2(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2), 4);
+			
+			if (LevelResetTimeElapsed >= 3)
+			{
+				NewLevel();
+			}
+		}
+		
 		// Draw the UI if we're in gamerunning state
-		if (Mode == EGameMode.RUNNING)
+		if (Mode == EGameMode.RUNNING || Mode == EGameMode.PLAYERDEAD || Mode == EGameMode.LEVELDONE)
 		{
 			ScoreRenderer.DrawScore( Shape, Score, new Vector2(Gdx.graphics.getWidth() * 0.01f, Gdx.graphics.getHeight() * 0.9f), 8 );
 			ScoreRenderer.DrawShips( Shape, Lives, new Vector2(Gdx.graphics.getWidth() * 0.01f, Gdx.graphics.getHeight() * 0.82f), 5 );
@@ -139,6 +164,8 @@ public class AssteroidsGameScreen implements Screen {
 	{
 		Mode = EGameMode.RUNNING;
 		
+		Level += 1;
+		
 		// DEMO
 		for (int i=0; i < 3; i++)
 		{
@@ -147,19 +174,53 @@ public class AssteroidsGameScreen implements Screen {
 						new AsteroidLarge(
 							this,
 							ESize.LARGE, 
+							new Vector2( GetAsteroidSpawnLoc() ),
 							new Vector2( 
-									(float)(Math.random(0, 800)),
-									(float)(Math.random(0, 600))
-							),
-							new Vector2( 
-									(float)(Math.random(-1f,1f)), 
-									(float)(Math.random(-1f,1f))	
+									(float)(Math.random(-1f, 1f)),
+									(float)(Math.random(-1f, 1f))
 							)
 						));
 		}
 			
 		// Spawn the player ship
-		Ship = new Ship(this, new Vector2(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2), 0);		
+		if (Ship == null)
+		{
+			Ship = new Ship(this, new Vector2(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2), 0);	
+		}
+	}
+	
+	private Vector2 GetAsteroidSpawnLoc()
+	{
+		// Generate spawn locations at the edges of the screen
+		Vector2 OutLoc = new Vector2();
+		
+		OutLoc.x = Math.random(-50, 50);
+		if (Math.randomBoolean())
+		{
+			OutLoc.x += Gdx.graphics.getWidth() / 2;
+		}
+		else
+		{
+			OutLoc.x -= Gdx.graphics.getWidth() / 2;
+		}
+		
+		OutLoc.y = Math.random(-50, 50);
+		if (Math.randomBoolean())
+		{
+			OutLoc.y += Gdx.graphics.getHeight() / 2;
+		}
+		else
+		{
+			OutLoc.y -= Gdx.graphics.getHeight() / 2;
+		}		
+		
+		return OutLoc;
+	}
+	
+	public void LevelClear()
+	{
+		Mode = EGameMode.LEVELDONE;
+		LevelResetTimeElapsed = 0f;
 	}
 	
 	public void AsteroidExpired(Asteroid inAsteroid)
@@ -251,8 +312,6 @@ public class AssteroidsGameScreen implements Screen {
 			Particles.add( new Particle( this, SpawnLocation.cpy(), SpawnVelocity.cpy(), Math.random(0.5f, 1f) ) );
 		}
 		
-		Ship.IsDead = true;
-		
 		Lives -= 1;
 		
 		if (Lives < 0)
@@ -265,6 +324,11 @@ public class AssteroidsGameScreen implements Screen {
 			// Switch modes and wait for respawn
 			Mode = EGameMode.PLAYERDEAD;
 		}
+	}
+	
+	public void RespawnShip()
+	{
+		
 	}
 	
 	public void ParticleExpired(Particle inParticle)

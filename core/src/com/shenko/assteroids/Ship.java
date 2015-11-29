@@ -33,16 +33,18 @@ public class Ship {
 	
 	public boolean debug = false;
 	
-	public boolean CanFire;
-	public float FireTime;
+	public boolean CanFire;					// If true, pressing space fires a new bullet
+	public float FireTime;					// Time elapsed since firing a shot
 	
 	public boolean IsDead;
+	public float RespawnTimeElapsed;
+	public boolean CanRespawn;
 	
 	public List<PlayerBullet> Bullets;
 	
-	private float InvulnerableTime;
-	public boolean IsInvulnerable;
-	private float InvulnerableBlinkTime;
+	public boolean IsInvulnerable;			// If true, player doesn't take damage from being hit
+	private float InvulnerableTime;			// Time remaining on invulnerable
+	private float InvulnerableBlinkTime;	// Used to time the blinking state
 	private boolean InvulnerableBlink;
 	
 	public Ship(AssteroidsGameScreen inScreen, Vector2 inLocation, float inRotation)
@@ -70,6 +72,8 @@ public class Ship {
 		FireTime = 0f;
 		
 		IsDead = false;
+		RespawnTimeElapsed = 0f;
+		CanRespawn = false;
 		
 		IsInvulnerable = true;
 		InvulnerableTime = 0f;		
@@ -102,32 +106,24 @@ public class Ship {
 		int up = (Screen.UpDown) ? 1 : 0;
 		int down = (Screen.DownDown) ? 1 : 0;		
 		
-		// Update our rotation rate
-		RotationRate = (left * 3f) + (right * -3f);
-		
 		// Update acceleration vector, then rotate it by our rotation
 		Acceleration.setZero();
-		Acceleration.y = (up * 0.1f) + (down * -0.1f);
-		Acceleration.rotate(Rotation);
-		
-		// Shoot boolet maybe
-		FireTime += Delta;
-		
-		if (FireTime > 0.3f)
+		if (!IsDead)
 		{
-			CanFire = true;
+			// Update our rotation rate
+			RotationRate = (left * 3f) + (right * -3f);
+			
+			Acceleration.y = (up * 0.1f) + (down * -0.1f);
+			Acceleration.rotate(Rotation);
 		}
-		
-		if (Screen.FireDown && CanFire)
+		else
 		{
-			float[] Points = Polygon.getTransformedVertices();
-			Vector2 FirePoint = new Vector2(Points[0], Points[1]);
-			
-			// We shoot, add another bullet to our list
-			Bullets.add(new PlayerBullet(this, FirePoint, Rotation, Velocity.len2()));
-			
-			CanFire = false;
-			FireTime = 0f;
+			// Do respawn timer
+			RespawnTimeElapsed += Delta;
+			if (RespawnTimeElapsed >= 3)
+			{
+				CanRespawn = true;
+			}
 		}
 		
 		// Set velocity
@@ -166,6 +162,27 @@ public class Ship {
 		
 		Collision.setPosition(Location);
 		
+		// Shoot boolet maybe
+		FireTime += Delta;
+		
+		if (FireTime > 0.3f)
+		{
+			CanFire = true;
+		}
+		
+		if (Screen.FireDown && CanFire && !IsDead)
+		{
+			// Get a coordinate to spawn the bullet at. Nose of our ship transformed into world space.
+			float[] Points = Polygon.getTransformedVertices();
+			Vector2 FirePoint = new Vector2(Points[0], Points[1]);
+			
+			// We shoot, add another bullet to our list
+			Bullets.add(new PlayerBullet(this, FirePoint, Rotation, Velocity.len2()));
+			
+			CanFire = false;
+			FireTime = 0f;
+		}
+		
 		// Tell all bullets to update
 		for (PlayerBullet B: Bullets)
 		{
@@ -175,8 +192,10 @@ public class Ship {
 			}
 		}
 		
-		if (Screen.UpDown)
+		// If we're holding accelerate, add some exhaust particles
+		if (Screen.UpDown && !IsDead)
 		{
+			// Get coordinate for the exhaust particles
 			float[] Points = Polygon.getTransformedVertices();
 			Vector2 ExhaustPoint = new Vector2(Points[6], Points[7]);
 			
@@ -189,7 +208,32 @@ public class Ship {
 							)
 					);
 		}
-
+		
+		// Handle keypress to respawn
+		if (IsDead && Screen.FireDown)
+		{
+			Screen.RespawnShip();
+			
+			// Reset all our shit
+			Location.x = Gdx.graphics.getWidth() / 2;
+			Location.y = Gdx.graphics.getHeight() / 2;
+			
+			Rotation = 0;
+			RotationRate = 0;
+			Acceleration.setZero();
+			Velocity.setZero();
+			
+			IsInvulnerable = true;
+			InvulnerableTime = 0f;		
+			InvulnerableBlinkTime = 0f;
+			
+			Polygon.setPosition(Location.x, Location.y);
+			Polygon.setRotation(Rotation);
+			Collision.setPosition(Location);
+			
+			IsDead = false;
+		}
+		
 	}
 	
 	public void Render(ShapeRenderer Renderer)
@@ -199,6 +243,7 @@ public class Ship {
 		{
 			Renderer.begin(ShapeType.Line);
 			
+			// Handle invulnerable blinking by drawing at half brightness
 			if (IsInvulnerable)
 			{
 				if (InvulnerableBlink)
@@ -211,6 +256,7 @@ public class Ship {
 				}
 			}
 			
+			// Render that sweet sexy polygon
 			Renderer.polygon(Polygon.getTransformedVertices());
 			if (debug)
 			{
@@ -220,6 +266,7 @@ public class Ship {
 			}
 			Renderer.end();
 			
+			// Render all our bullets
 			for (PlayerBullet B : Bullets)
 			{
 				B.Render(Renderer);
@@ -230,5 +277,13 @@ public class Ship {
 	public void BulletExpired(PlayerBullet theBullet)
 	{
 		Bullets.remove(theBullet);
+	}
+	
+	public void Hit()
+	{
+		// We got our asses plowed
+		IsDead = true;
+		CanRespawn = false;
+		RespawnTimeElapsed = 0f;
 	}
 }

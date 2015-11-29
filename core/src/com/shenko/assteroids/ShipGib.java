@@ -6,10 +6,12 @@ import com.badlogic.gdx.math.Vector2;
 
 public class ShipGib {
 	
+	// Fragment of the player ship, spawned when he gets owned by an asteroid
+	
 	private AssteroidsGameScreen Screen;
 
 	public Vector2 Location;
-	private Vector2 Length;
+	private Vector2 Length;			// Length of the line fragment
 	private Vector2 Velocity;
 	
 	private float Rotation;

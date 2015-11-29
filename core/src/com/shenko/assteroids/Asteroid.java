@@ -38,6 +38,7 @@ public class Asteroid implements AsteroidInterface {
 
 	public void Update(float Delta) {
 		
+		// Wrap location if offscreen
 		if (Location.x < -50)
 		{
 			Location.x = Gdx.graphics.getWidth() + 50;
@@ -64,6 +65,7 @@ public class Asteroid implements AsteroidInterface {
 			{
 				// Collided with the player ship, blow it up
 				TheScreen.PlayShipExplosion(TheScreen.Ship.Location, TheScreen.Ship.Velocity);
+				TheScreen.Ship.Hit();
 				System.out.print("Collision");
 			}
 		}

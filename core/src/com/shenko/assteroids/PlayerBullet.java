@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 
 public class PlayerBullet {
@@ -19,6 +20,9 @@ public class PlayerBullet {
 	public float Lifetime;
 	public float Brightness;
 	
+	public float[] DrawPoints;
+	public Polygon Polygon;
+	
 	public boolean debug = false;
 
 	public PlayerBullet(Ship inShip, Vector2 inLocation, float inRotation, float VPlus)
@@ -32,6 +36,9 @@ public class PlayerBullet {
 		Velocity.rotate(Rotation);
 		
 		Collision = new Circle(Location.x, Location.y, 1);
+		
+		DrawPoints = new float[] { 0, 1, 1, 0, 0, -3, -1, 0, 0, 1 };
+		Polygon = new Polygon(DrawPoints);
 		
 		Lifetime = 0f;
 		Brightness = 1f;
@@ -64,7 +71,7 @@ public class PlayerBullet {
 		// Check collision
 		for (Asteroid a : Ship.Screen.Asteroids)
 		{
-			if (this.Collision.overlaps(a.Collision))
+			if (this.Collision.overlaps(a.Collision) && !Ship.IsDead)
 			{
 				a.TakeHit();
 				Ship.BulletExpired(this);
@@ -86,8 +93,11 @@ public class PlayerBullet {
 	{
 		Renderer.begin(ShapeType.Line);
 		Renderer.setColor(Brightness,Brightness,Brightness,1);
-	//	Renderer.line(Location, Location.add(Velocity));
-		Renderer.circle(Location.x, Location.y, 1);
+		Polygon.setScale(1.5f, 1.5f);
+		Polygon.setRotation(Rotation);
+		Polygon.setPosition(Location.x, Location.y);
+		Renderer.polygon(Polygon.getTransformedVertices());
+
 		if (debug)
 		{
 			Renderer.setColor(1,0,0,1);
