@@ -16,33 +16,10 @@ public class AsteroidSmall extends Asteroid implements AsteroidInterface {
 		Location = inLocation;
 		Velocity = inVelocity;
 		
-		// Set up polygon and collision
-		switch (Size)
-		{
-		case LARGE:
-			DrawPolygon = new Polygon(DrawPointsLarge);
-			DrawPolygon.scale(10);
-			Collision = new Circle(Location, 40);
-			break;
-			
-		case MEDIUM:
-			DrawPolygon = new Polygon(DrawPointsMedium);
-			DrawPolygon.scale(7.2f);
-			Collision = new Circle(Location, 30);
-			break;
-			
-		case SMALL:
-			DrawPolygon = new Polygon(DrawPointsSmall);
-			DrawPolygon.scale(3.5f);
-			Collision = new Circle(Location, 15);
-			break;
-			
-		default:
-			DrawPolygon = new Polygon(DrawPointsMedium);
-			Collision = new Circle(Location, 30);
-			break;		
-		}
-		
+		DrawPolygon = new Polygon(DrawPointsSmall);
+		DrawPolygon.scale(6f);
+		Collision = new Circle(Location, 15);
+
 		// Set up rotation rate
 		RotationRate = TheScreen.Math.random(-2f, 2f);
 		

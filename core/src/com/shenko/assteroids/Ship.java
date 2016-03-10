@@ -18,16 +18,16 @@ public class Ship {
 	
 	public AssteroidsGameScreen Screen;
 
-	public Vector2 Location;
-	public Vector2 Acceleration;
-	public Vector2 Velocity;
+	public Vector2 Location;				// On screen location
+	public Vector2 Acceleration;			// Acceleration vector
+	public Vector2 Velocity;				// Resolved velocity vector
 	
-	public float Rotation;
-	public float RotationRate;
-	public float MaxSpeed;
+	public float Rotation;					// Current rotation
+	public float RotationRate;				// Rate of rotation
+	public float MaxSpeed;					// Cap for ship velocity
 	
-	public float[] DrawPoints;
-	public Polygon Polygon;
+	public float[] DrawPoints;				// All our points to form the polygon to draw
+	public Polygon Polygon;					// Polygon to render
 	
 	public Circle Collision;
 	
@@ -36,16 +36,18 @@ public class Ship {
 	public boolean CanFire;					// If true, pressing space fires a new bullet
 	public float FireTime;					// Time elapsed since firing a shot
 	
-	public boolean IsDead;
-	public float RespawnTimeElapsed;
+	public boolean IsDead;					// True if we're dead, duh
+	public float RespawnTimeElapsed;		
 	public boolean CanRespawn;
 	
-	public List<PlayerBullet> Bullets;
+	public List<PlayerBullet> Bullets;		// List of all bullets spawned by the ship
 	
 	public boolean IsInvulnerable;			// If true, player doesn't take damage from being hit
 	private float InvulnerableTime;			// Time remaining on invulnerable
 	private float InvulnerableBlinkTime;	// Used to time the blinking state
 	private boolean InvulnerableBlink;
+	
+	private boolean FireRight = true;		// Used to alternate left/right fire positions
 	
 	public Ship(AssteroidsGameScreen inScreen, Vector2 inLocation, float inRotation)
 	{
@@ -58,14 +60,51 @@ public class Ship {
 		Acceleration = new Vector2(0f, 0f);
 		RotationRate = 0f;
 		
-		DrawPoints = new float[] { 0, 4, 3, -4, 1, -3, 0, -3, -1, -3, -3, -4, 0, 4 };
+		// Set up array of points to create polygon from
+		DrawPoints = new float[] { 
+				-3f, -4f,
+				-1.9351f, -1.1603f,
+				-1.9351f, -0.1603f,
+				-1.9351f, -1.1603f,
+				0f, 4f,
+				1.853f, -0.9414f,
+				1.853f, 0.0586f,
+				1.853f, -0.9414f,
+				3f, -4f,
+				1.7357f, -3.3679f,
+				-1.7357f, -3.3679f,
+				1.7357f, -3.3679f,
+				1f, -3f,
+				0f, -3f,
+				0f, 2.1432f,
+				1.853f, -2.6308f,
+				0f, 2.1432f,
+				-1.9351f, -2.6308f,
+				0f, 2.1432f,
+				0f, -1.2441f,
+				-0.3777f, -1.2441f,
+				0f, -1.2441f,
+				0f, -1.8474f,
+				-0.6564f, -1.8474f,
+				0f, -1.8474f,
+				0f, -2.4352f,
+				-0.8422f, -2.4352f,
+				0f, -2.4352f,
+				0f, -3f,
+				-1f, -3f,
+				-3, -4f
+			};
+		
+		// Create polygon and scale it
 		Polygon = new Polygon(DrawPoints);
 		Polygon.setPosition(Location.x, Location.y);
 		Polygon.scale(4.5f);
 		Polygon.rotate(Rotation);
 		
+		// Create collision circle
 		Collision = new Circle(Location.x, Location.y, 18);
 		
+		// Set up bullet list
 		Bullets = new CopyOnWriteArrayList<PlayerBullet>();
 		
 		CanFire = true;
@@ -158,8 +197,7 @@ public class Ship {
 		
 		// Update polygon and collision
 		Polygon.setPosition(Location.x, Location.y);
-		Polygon.rotate(RotationRate);
-		
+		Polygon.rotate(RotationRate);		
 		Collision.setPosition(Location);
 		
 		// Shoot boolet maybe
@@ -172,13 +210,26 @@ public class Ship {
 		
 		if (Screen.FireDown && CanFire && !IsDead)
 		{
-			// Get a coordinate to spawn the bullet at. Nose of our ship transformed into world space.
+			// Get a coordinate to spawn the bullet at.
 			float[] Points = Polygon.getTransformedVertices();
-			Vector2 FirePoint = new Vector2(Points[0], Points[1]);
+			if (FireRight)
+			{
+				// Fire location should be on the right
+				Vector2 FirePoint = new Vector2(Points[12], Points[13]);
+				// We shoot, add another bullet to our list
+				Bullets.add(new PlayerBullet(this, FirePoint, Rotation, Velocity.len2()));
+				FireRight = false;
+			}
+			else
+			{
+				// Fire location should be on the left
+				Vector2 FirePoint = new Vector2(Points[2], Points[3]);
+				// We shoot, add another bullet to our list
+				Bullets.add(new PlayerBullet(this, FirePoint, Rotation, Velocity.len2()));
+				FireRight = true;
+			}
 			
-			// We shoot, add another bullet to our list
-			Bullets.add(new PlayerBullet(this, FirePoint, Rotation, Velocity.len2()));
-			
+			// Reset for next shot
 			CanFire = false;
 			FireTime = 0f;
 		}
@@ -197,8 +248,9 @@ public class Ship {
 		{
 			// Get coordinate for the exhaust particles
 			float[] Points = Polygon.getTransformedVertices();
-			Vector2 ExhaustPoint = new Vector2(Points[6], Points[7]);
+			Vector2 ExhaustPoint = new Vector2(Points[6], Points[7]);  // FIX THIS
 			
+			// Add particles to the screen list
 			Screen.Particles.add(
 					new Particle(
 							Screen,

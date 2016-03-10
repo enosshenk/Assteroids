@@ -48,6 +48,7 @@ public class AssteroidsTitleScreen implements Screen {
 		
 		SpaceDown = false;
 		
+		// Generate some random points for stars
 		Starfield = new float[40];
 		for (int i=0; i<40; i++)
 		{

@@ -18,32 +18,12 @@ public class AsteroidLarge extends Asteroid implements AsteroidInterface {
 		Location = inLocation;
 		Velocity = inVelocity;
 		
-		// Set up polygon and collision
-		switch (Size)
-		{
-		case LARGE:
-			DrawPolygon = new Polygon(DrawPointsLarge);
-			DrawPolygon.scale(10);
-			Collision = new Circle(Location, 45);
-			break;
-			
-		case MEDIUM:
-			DrawPolygon = new Polygon(DrawPointsMedium);
-			DrawPolygon.scale(7.2f);
-			Collision = new Circle(Location, 30);
-			break;
-			
-		case SMALL:
-			DrawPolygon = new Polygon(DrawPointsSmall);
-			DrawPolygon.scale(3.5f);
-			Collision = new Circle(Location, 20);
-			break;
-			
-		default:
-			DrawPolygon = new Polygon(DrawPointsMedium);
-			Collision = new Circle(Location, 30);
-			break;		
-		}
+		// Create polygon from the array of draw points
+		DrawPolygon = new Polygon(DrawPointsLarge);
+		// Scale it
+		DrawPolygon.scale(10);
+		// Set up collision
+		Collision = new Circle(Location, 45);
 		
 		// Set up rotation rate
 		RotationRate = TheScreen.Math.random(-2f, 2f);
@@ -55,10 +35,14 @@ public class AsteroidLarge extends Asteroid implements AsteroidInterface {
 		
 		super.Update(Delta);
 		
+		// Update location
 		Location.add(Velocity);	
+		
+		// Update polygon and collision location
 		DrawPolygon.setPosition(Location.x, Location.y);
 		Collision.setPosition(Location);
 		
+		// Rotate
 		Rotation += RotationRate;		
 		DrawPolygon.rotate(RotationRate);
 	}

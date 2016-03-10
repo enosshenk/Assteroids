@@ -9,6 +9,8 @@ import com.badlogic.gdx.math.Vector2;
 
 public class PlayerBullet {
 	
+	// Bullet spawned by the player ship, it flies and sees if it hits an asteroid
+	
 	public Ship Ship;
 	
 	public Vector2 Location;
@@ -73,7 +75,9 @@ public class PlayerBullet {
 		{
 			if (this.Collision.overlaps(a.Collision) && !Ship.IsDead)
 			{
+				// Tell the asteroid it got hit
 				a.TakeHit();
+				// Tell the ship to remove this bullet
 				Ship.BulletExpired(this);
 				break;
 			}
@@ -83,9 +87,11 @@ public class PlayerBullet {
 		
 		if (Lifetime > 3)
 		{
+			// Bullet too old, expire
 			Ship.BulletExpired(this);
 		}
 		
+		// Fade the draw brightness down over time so older bullets are dimmer
 		Brightness -= Delta / 4;
 	}
 	

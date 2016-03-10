@@ -32,17 +32,18 @@ public class AssteroidsGameScreen implements Screen {
 	public boolean DownDown;
 	public boolean FireDown;
 	
-	public int Score;
-	public int Lives;
-	public ScoreRenderer ScoreRenderer;
-	public TextRenderer TextRenderer;
+	public int Score;						// Player's current score
+	public int Lives;						// How many lives does the player have
+	public ScoreRenderer ScoreRenderer;		// Class to render score elements
+	public TextRenderer TextRenderer;		// Class to render text on screen
 	
 	public List<Particle> Particles;		// List of currently rendered particles
 	public List<ShipGib> Gibs;				// List of currently rendered ship giblets
 	
-	public float LevelResetTimeElapsed;
+	public float LevelResetTimeElapsed;		// Time elapsed since last level was completed
 	public int Level;
 	
+											// Game states yay
 	public enum EGameMode { STARTUP, RUNNING, LEVELDONE, PLAYERDEAD, GAMEOVER }
 	public EGameMode Mode = EGameMode.STARTUP;
 	
@@ -66,8 +67,11 @@ public class AssteroidsGameScreen implements Screen {
 		Particles = new CopyOnWriteArrayList<Particle>();
 		Gibs = new CopyOnWriteArrayList<ShipGib>();
 		
+		// Initial score and lives
 		Score = 0;
 		Lives = 3;
+		
+		// Instantiate renderers
 		ScoreRenderer = new ScoreRenderer(this);
 		TextRenderer = new TextRenderer();
 		
@@ -116,8 +120,10 @@ public class AssteroidsGameScreen implements Screen {
 		Shape.setProjectionMatrix(Camera.combined);
 		Shape.setColor(1,1,1,1);
 		
+		// If the ship exists, tell it to render
 		if (Ship != null) { Ship.Render(Shape); }
 		
+		// Check to see if all the asteroids are destroyed
 		if (Mode == EGameMode.RUNNING && Asteroids.isEmpty())
 		{
 			LevelClear();
@@ -148,6 +154,7 @@ public class AssteroidsGameScreen implements Screen {
 			
 			if (LevelResetTimeElapsed >= 3)
 			{
+				// Shown that enough, get back to the killing
 				NewLevel();
 			}
 		}
@@ -166,7 +173,7 @@ public class AssteroidsGameScreen implements Screen {
 		
 		Level += 1;
 		
-		// DEMO
+		// ADD INCREASING SPAWNS FOR HIGHER LEVELS LATER
 		for (int i=0; i < 3; i++)
 		{
 				// Populate a few randomly generated asteroids on screen
@@ -219,6 +226,7 @@ public class AssteroidsGameScreen implements Screen {
 	
 	public void LevelClear()
 	{
+		// You beat the level you big mlg pro gamer
 		Mode = EGameMode.LEVELDONE;
 		LevelResetTimeElapsed = 0f;
 	}
@@ -328,7 +336,7 @@ public class AssteroidsGameScreen implements Screen {
 	
 	public void RespawnShip()
 	{
-		
+		// Stuff should probably go here
 	}
 	
 	public void ParticleExpired(Particle inParticle)
